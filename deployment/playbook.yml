@@ -1,0 +1,41 @@
+- name: Deploy the Tankerkönig InfluxDB Importer
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Binary snapshot is built
+      delegate_to: localhost
+      command: goreleaser --snapshot
+      args:
+        chdir: ..
+        creates: "{{ playbook_dir }}/../dist/{{ program_name }}_linux_amd64/{{ program_name }}"
+      tags: [ local goreleaser binary ]
+
+    - name: Program binary is up-to-date
+      copy:
+        src: "{{ playbook_dir }}/../dist/{{ program_name }}_linux_amd64/{{ program_name }}"
+        dest: "/usr/local/bin/{{ program_name }}"
+        mode: "0755"
+      tags: [ copy, binary ]
+      become: true
+
+    - name: API key is present
+      ansible.builtin.cron:
+        name: TANKERKOENIG_API_KEY
+        env: yes
+        job: "{{ tankerkoenig.api_key }}"
+      tags: [ cron, env, tankerkönig ]
+
+    - name: INFLUXDB_URL is present
+      ansible.builtin.cron:
+        name: INFLUXDB_URL
+        env: yes
+        job: "{{ influxdb_url }}"
+      tags: [ cron, env, influxdb ]
+
+    - name: Tankerkönig latest price is updated every fivteen minutes via Cron
+      ansible.builtin.cron:
+        name: Update Tankerkönig prices
+        minute: "*/15"
+        job: "/usr/local/bin/{{ program_name }} {{ tankerkoenig.stations | join(' ') }} >> /tmp/{{ program_name }}.log 2>&1"
+      tags: [ influxdb, influxdb ]
