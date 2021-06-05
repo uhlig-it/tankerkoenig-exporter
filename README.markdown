@@ -17,11 +17,10 @@ $ ansible-playbook playbook.yml -i somewhere.example.com,
 
 # Manual Approach
 
-1. Search for a station
+1. Search for a station within 1 km of my home:
 
     ```command
-    $ curl https://creativecommons.tankerkoenig.de/json/list.php?lat=48.521&lng=8.82&rad=15&sort=dist&type=all&apikey=00000000-0000-0000-0000-000000000002
-    ...
+    $ curl "https://creativecommons.tankerkoenig.de/json/list.php?lat=48.52&lng=8.82&rad=1&sort=dist&type=all&apikey=$TANKERKOENIG_API_KEY" | jq -r '.stations[].id'
     870efffb-676b-4301-854e-c80e93c3e3ef
     ```
 
