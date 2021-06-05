@@ -2,40 +2,18 @@
   hosts: all
   gather_facts: true
 
-  tasks:
-    - name: Binary snapshot is built
-      delegate_to: localhost
-      command: goreleaser --snapshot
-      args:
-        chdir: ..
-        creates: "{{ playbook_dir }}/../dist/{{ program_name }}_linux_amd64/{{ program_name }}"
-      tags: [ local goreleaser binary ]
-
-    - name: Program binary is up-to-date
-      copy:
-        src: "{{ playbook_dir }}/../dist/{{ program_name }}_linux_amd64/{{ program_name }}"
-        dest: "/usr/local/bin/{{ program_name }}"
-        mode: "0755"
-      tags: [ copy, binary ]
+  roles:
+    - role: suhlig.simple_systemd_service
+      vars:
+        program:
+          # TODO use {{ ansible_architecture }} and {{ ansible_system | downcase }}
+          binary: "{{ playbook_dir }}/../dist/{{ program_name }}_linux_amd64/{{ program_name }}"
+          name: tankerkoenig-influxdb-importer
+          description: Tankerkönig data export to InfluxDB
+          parameters: "{{ tankerkoenig.stations }}"
+          environment:
+            - "TANKERKOENIG_API_KEY='{{ tankerkoenig.api_key }}'"
+            - "INFLUXDB_URL='{{ influxdb_url }}'"
+          timer:
+            - OnUnitActiveSec=15m
       become: true
-
-    - name: API key is present
-      ansible.builtin.cron:
-        name: TANKERKOENIG_API_KEY
-        env: yes
-        job: "{{ tankerkoenig.api_key }}"
-      tags: [ cron, env, tankerkönig ]
-
-    - name: INFLUXDB_URL is present
-      ansible.builtin.cron:
-        name: INFLUXDB_URL
-        env: yes
-        job: "{{ influxdb_url }}"
-      tags: [ cron, env, influxdb ]
-
-    - name: Tankerkönig latest price is updated every fivteen minutes via Cron
-      ansible.builtin.cron:
-        name: Update Tankerkönig prices
-        minute: "*/15"
-        job: "/usr/local/bin/{{ program_name }} {{ tankerkoenig.stations | join(' ') }} >> /tmp/{{ program_name }}.log 2>&1"
-      tags: [ influxdb, influxdb ]

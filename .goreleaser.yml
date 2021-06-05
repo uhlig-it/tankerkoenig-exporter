@@ -3,6 +3,7 @@ project_name: tankerkoenig-influxdb-importer
 before:
   hooks:
     - go mod download
+    - go mod tidy
 
 builds:
   - goos:
