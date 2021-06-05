@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/alexruf/tankerkoenig-go"
 	flags "github.com/jessevdk/go-flags"
@@ -44,7 +45,7 @@ func main() {
 	apiKey, present := os.LookupEnv("TANKERKOENIG_API_KEY")
 
 	if !present {
-		fmt.Fprintf(os.Stderr, "Error: Required TANKERKOENIG_API_KEY not present\n")
+		fmt.Fprintln(os.Stderr, "Error: Required TANKERKOENIG_API_KEY not present")
 		os.Exit(1)
 	}
 
@@ -62,7 +63,7 @@ func main() {
 	influxURLValue, present := os.LookupEnv("INFLUXDB_URL")
 
 	if !present {
-		fmt.Fprintln(os.Stderr, "Warning: Not publishing due to missing INFLUXDB_URL")
+		fmt.Fprintln(os.Stderr, "Error: Required INFLUXDB_URL not present")
 		os.Exit(1)
 	}
 
@@ -81,6 +82,7 @@ func main() {
 	}
 
 	for _, id := range ids {
+		ts := time.Now()
 		station, _, err := client.Station.Detail(id)
 
 		if err != nil {
@@ -89,12 +91,13 @@ func main() {
 		}
 
 		fmt.Printf("%s %s (%v)\n", station.Name, station.Place, station.Id)
-		fmt.Printf("  Open: %v\n", station.IsOpen)
+		fmt.Printf("  Time:   %v\n", ts.Format(time.RFC3339))
+		fmt.Printf("  Open:   %v\n", station.IsOpen)
 		fmt.Printf("  Diesel: %v €/l\n", station.Diesel)
 		fmt.Printf("  E5:     %v €/l\n", station.E5)
 		fmt.Printf("  E10:    %v €/l\n", station.E10)
 
-		publisher.Publish(station)
+		publisher.Publish(station, ts)
 	}
 }
 

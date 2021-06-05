@@ -38,7 +38,7 @@ func New(influxURL *url.URL) (*InfluxPublisher, error) {
 	return &InfluxPublisher{influxClient: influxClient, database: influxDatabase}, nil
 }
 
-func (p *InfluxPublisher) Publish(station tankerkoenig.Station) error {
+func (p *InfluxPublisher) Publish(station tankerkoenig.Station, ts time.Time) error {
 	bp, err := influx.NewBatchPoints(influx.BatchPointsConfig{
 		Database:  p.database,
 		Precision: "s",
@@ -52,7 +52,6 @@ func (p *InfluxPublisher) Publish(station tankerkoenig.Station) error {
 		"E5":     station.E5,
 		"E10":    station.E10,
 		"Diesel": station.Diesel,
-		"time":   time.Now(),
 	}
 
 	tags := map[string]string{
@@ -64,7 +63,7 @@ func (p *InfluxPublisher) Publish(station tankerkoenig.Station) error {
 		"station.postcode": fmt.Sprintf("%v", station.PostCode),
 	}
 
-	pt, err := influx.NewPoint("price", tags, fields)
+	pt, err := influx.NewPoint("price", tags, fields, ts)
 
 	if err != nil {
 		return err
