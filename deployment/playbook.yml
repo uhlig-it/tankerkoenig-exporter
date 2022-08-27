@@ -1,4 +1,4 @@
-- name: Deploy the Tankerkönig InfluxDB Importer
+- name: Deploy the Tankerkönig Exporter
   hosts: all
   gather_facts: true
 
@@ -8,12 +8,9 @@
         program:
           # TODO use {{ ansible_architecture }} and {{ ansible_system | downcase }}
           binary: "{{ playbook_dir }}/../dist/{{ program_name }}_linux_amd64/{{ program_name }}"
-          name: tankerkoenig-influxdb-importer
-          description: Tankerkönig data export to InfluxDB
-          parameters: "{{ tankerkoenig.stations }}"
+          name: tankerkoenig-exporter
+          description: Tankerkönig data export for Prometheus
+          parameters: --interval 15m "{{ tankerkoenig.stations }}"
           environment:
             - "TANKERKOENIG_API_KEY='{{ tankerkoenig.api_key }}'"
-            - "INFLUXDB_URL='{{ influxdb_url }}'"
-          timer:
-            - OnUnitActiveSec=15m
       become: true

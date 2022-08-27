@@ -1,6 +1,6 @@
-# Tankerkönig InfluxDB Importer
+# Tankerkönig Exporter
 
-Exports Tankerkönig data to InfluxDB
+Exports Tankerkönig data for Prometheus
 
 # Build
 
@@ -8,7 +8,7 @@ Exports Tankerkönig data to InfluxDB
 $ goreleaser --snapshot
 ```
 
-# Deploy
+# Deployment
 
 ```command
 $ cd deployment
@@ -33,7 +33,7 @@ $ ansible-playbook playbook.yml -i somewhere.example.com,
 
 # Ideas
 
-* Concourse-Resource produziert einen neuen Preis, wenn er sich verändert hat. Darauf kann z.B. eine Slack-Nachricht folgen.
+* Concourse resource creates a new version when the price has change (risen/fallen)
 
 # Links
 
