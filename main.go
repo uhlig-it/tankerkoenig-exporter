@@ -185,7 +185,7 @@ func publishAsBool(gauge *prometheus.GaugeVec, state interface{}, product string
 	switch convertedState := state.(type) {
 	case bool:
 		if options.Verbose {
-			log.Printf("Publishing %v price %v at %v", product, stationLabel, convertedState)
+			log.Printf("Publishing %v state %v as %v", product, stationLabel, convertedState)
 		}
 
 		if convertedState {
@@ -194,6 +194,6 @@ func publishAsBool(gauge *prometheus.GaugeVec, state interface{}, product string
 			gauge.WithLabelValues(stationLabel).Set(0)
 		}
 	default:
-		log.Printf("%v has no price for %v", stationLabel, product)
+		log.Printf("%v has no state for %v", stationLabel, product)
 	}
 }
