@@ -1,1 +1,3 @@
-- src: suhlig.simple_systemd_service
+- name: suhlig.simple_systemd_service
+  src: https://github.com/uhlig-it/ansible-role-simple-systemd-service
+  version: master

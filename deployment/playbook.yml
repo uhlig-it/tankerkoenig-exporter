@@ -2,15 +2,28 @@
   hosts: all
   gather_facts: true
 
+  pre_tasks:
+    - name: Lookup binary path from artifacts.json
+      ansible.builtin.set_fact:
+        binary_path: "{{ item['path'] }}"
+      when: |
+        item['goos'] is defined and item['goos'] == 'linux'
+        and item['goarch'] is defined and item['goarch'] == 'amd64'
+        and item['type'] is defined and item['type'] == 'Binary'
+      loop: "{{ lookup('file', playbook_dir + '/../dist/artifacts.json') | from_json }}"
+      tags: [ goreleaser, binary, path, artifacts ]
   roles:
     - role: suhlig.simple_systemd_service
       vars:
         program:
-          # TODO use {{ ansible_architecture }} and {{ ansible_system | downcase }}
-          binary: "{{ playbook_dir }}/../dist/{{ program_name }}_linux_amd64/{{ program_name }}"
+          binary: "{{ binary_path }}"
           name: tankerkoenig-exporter
-          description: Tankerkönig data export for Prometheus
-          parameters: --interval 15m "{{ tankerkoenig.stations }}"
+          description: Tankerkönig export for Prometheus
+          parameters:
+            - --verbose
+            - --interval 15m
+            - --bind-address "{{ metrics.hostname }}:{{ metrics.port }}"
+            - "{{ tankerkoenig.stations | join(' ') }}"
           environment:
             - "TANKERKOENIG_API_KEY='{{ tankerkoenig.api_key }}'"
       become: true

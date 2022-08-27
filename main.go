@@ -104,6 +104,10 @@ func main() {
 			select {
 			case <-ticker.C:
 				for _, id := range ids {
+					if options.Verbose {
+						log.Printf("Checking prices for id %v", id)
+					}
+
 					station, _, err := client.Station.Detail(id)
 
 					if err != nil {
